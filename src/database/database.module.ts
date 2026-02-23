@@ -24,6 +24,8 @@ import { AiGeneration } from '../ai/entities/ai-generation.entity.js';
           SequenceMessage,
           AiGeneration,
         ],
+        migrations: ['dist/database/migrations/*.js'],
+        migrationsRun: false,
         synchronize: false,
       }),
       inject: [ConfigService],
