@@ -1,4 +1,10 @@
-import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { MessageSequence } from './entities/message-sequence.entity.js';
@@ -35,6 +41,12 @@ export class SequencesService {
   ) {}
 
   async generate(dto: GenerateSequenceDto) {
+    if (!dto.tov_config_id && !dto.tov_config) {
+      throw new BadRequestException(
+        'Either tov_config_id or tov_config is required',
+      );
+    }
+
     // 1. Fetch LinkedIn profile
     this.logger.log(`Fetching profile for ${dto.prospect_url}`);
     const profile = await this.linkedInProvider.fetchProfile(dto.prospect_url);
@@ -44,9 +56,17 @@ export class SequencesService {
     const prospect =
       await this.prospectsService.upsertByLinkedinUrl(normalized);
 
-    // 3. Create TovConfig
-    const tovConfig = await this.tovService.create(dto.tov_config);
-    const tovTranslation = this.tovTranslator.translate(dto.tov_config);
+    // 3. Resolve TovConfig: use saved by id or create from body
+    const tovConfig = dto.tov_config_id
+      ? await this.tovService.findById(dto.tov_config_id)
+      : await this.tovService.create(dto.tov_config!);
+    const tovTranslation = this.tovTranslator.translate({
+      formality: tovConfig.formality,
+      warmth: tovConfig.warmth,
+      directness: tovConfig.directness,
+      humor: tovConfig.humor ?? undefined,
+      technicality: tovConfig.technicality ?? undefined,
+    });
 
     // 4. Create sequence with status=generating
     const sequence = this.sequenceRepo.create({

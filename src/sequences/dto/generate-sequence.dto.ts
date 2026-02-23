@@ -6,8 +6,10 @@ import {
   IsOptional,
   IsString,
   IsUrl,
+  IsUUID,
   Max,
   Min,
+  ValidateIf,
   ValidateNested,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -51,10 +53,24 @@ export class GenerateSequenceDto {
   @IsUrl({}, { message: 'prospect_url must be a valid URL' })
   prospect_url!: string;
 
-  @ApiProperty({ type: TovConfigInput })
+  @ApiPropertyOptional({
+    description:
+      'Use a saved ToV config by ID. When provided, tov_config is ignored.',
+    example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+  })
+  @IsOptional()
+  @IsUUID()
+  tov_config_id?: string;
+
+  @ApiPropertyOptional({
+    type: TovConfigInput,
+    description:
+      'Required when tov_config_id is not set. Ignored when tov_config_id is set.',
+  })
+  @ValidateIf((o: GenerateSequenceDto) => !o.tov_config_id)
   @ValidateNested()
   @Type(() => TovConfigInput)
-  tov_config!: TovConfigInput;
+  tov_config?: TovConfigInput;
 
   @ApiProperty({ example: 'We help SaaS companies automate sales' })
   @IsString()

@@ -77,6 +77,25 @@ curl -X POST http://localhost:3000/api/generate-sequence \
 
 Response includes the generated messages, prospect analysis, structured rationale for each message, confidence scores, and AI generation metadata (tokens, cost, latency).
 
+**Why do I always get the same prospect name (e.g. Sarah Anderson)?**  
+The app uses a **mock LinkedIn provider** that does not call real LinkedIn. It builds a fake profile from the URL slug (e.g. `john-doe`) using a deterministic hash, so the same URL always yields the same mock profile. Different slugs (e.g. `jane-doe`, `alex-smith`) produce different mock names and titles. To use real LinkedIn data you would need to plug in a real provider (e.g. LinkedIn API or scraping) and register it in `LinkedInModule` instead of `MockLinkedInService`.
+
+**Using a saved ToV config**  
+You can pass a previously created ToV config by ID instead of inline `tov_config`. Create one via `POST /api/tov-configs`, then call generate-sequence with `tov_config_id` and omit `tov_config`:
+
+```bash
+curl -X POST http://localhost:3000/api/generate-sequence \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "prospect_url": "https://linkedin.com/in/jane-doe",
+    "tov_config_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "company_context": "We help SaaS companies automate sales",
+    "sequence_length": 3
+  }'
+```
+
+Either `tov_config_id` or `tov_config` is required; if both are sent, `tov_config_id` wins.
+
 ## Database Schema Decisions
 
 ### Why JSONB
