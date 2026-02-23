@@ -2,6 +2,103 @@
 
 REST API that takes LinkedIn prospect URLs and generates personalized messaging sequences using AI. Built with NestJS, PostgreSQL, TypeORM, and OpenAI GPT-4o-mini.
 
+## Live Demo
+
+| | |
+|---|---|
+| **Base URL** | https://prospect-pulse-production.up.railway.app |
+| **Swagger UI** | https://prospect-pulse-production.up.railway.app/api/docs |
+| **Health Check** | https://prospect-pulse-production.up.railway.app/api/health |
+
+Try it now:
+
+```bash
+curl -X POST https://prospect-pulse-production.up.railway.app/api/generate-sequence \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "prospect_url": "https://linkedin.com/in/john-doe",
+    "tov_config": {
+      "formality": 0.8,
+      "warmth": 0.6,
+      "directness": 0.7,
+      "humor": 0.4,
+      "technicality": 0.5
+    },
+    "company_context": "We help SaaS companies automate sales",
+    "sequence_length": 3
+  }'
+```
+
+<details>
+<summary>Example response (click to expand)</summary>
+
+```json
+{
+  "sequence_id": "8963581d-cc12-4d55-a5f7-da1e807c2fd1",
+  "status": "completed",
+  "prospect": {
+    "name": "Sarah Anderson",
+    "headline": "Head of Product at PipelineIO",
+    "analysis": {
+      "industry_insights": "The MarTech industry is rapidly evolving, with an increasing focus on data-driven solutions and automation to enhance customer engagement...",
+      "pain_points": [
+        "Challenges in integrating new technologies with existing marketing systems.",
+        "Difficulty in maintaining alignment between product development and sales strategies.",
+        "Pressure to deliver measurable ROI from marketing initiatives."
+      ],
+      "talking_points": [
+        "Discuss the latest trends in MarTech and how PipelineIO is positioning itself.",
+        "Explore the challenges Sarah faces in aligning product offerings with customer needs.",
+        "Share insights on successful strategies for scaling revenue teams."
+      ],
+      "communication_style_recommendation": "Communicate in a concise and data-driven manner, focusing on strategic insights and potential ROI."
+    }
+  },
+  "tov_summary": "Use a formal, personable tone with a balanced messaging style.",
+  "messages": [
+    {
+      "step": 1,
+      "channel": "linkedin_connection",
+      "subject": null,
+      "body": "Hello Ms. Anderson, I admire your impressive track record in scaling revenue teams at PipelineIO. I'd love to connect and exchange insights on the evolving MarTech landscape.",
+      "signals_used": ["Head of Product at PipelineIO", "experience in scaling revenue teams"],
+      "personalization_rationale": "Referenced her current role and experience in scaling teams to establish common ground.",
+      "assumptions": ["Sarah values networking with industry peers"],
+      "risk_checks": ["No sensitive inference", "No unverifiable claims"],
+      "confidence_score": 0.85
+    },
+    {
+      "step": 2,
+      "channel": "linkedin_message",
+      "subject": null,
+      "body": "Thank you for connecting, Ms. Anderson. With your background in product management, I'm curious about how PipelineIO is addressing the integration of new technologies in your marketing solutions.",
+      "signals_used": ["background in product management", "interest in technology integration"],
+      "personalization_rationale": "Built on our connection by asking a thoughtful question related to her expertise.",
+      "assumptions": ["Sarah is interested in discussing strategic initiatives"],
+      "risk_checks": ["No sensitive inference", "No unverifiable claims"],
+      "confidence_score": 0.88
+    },
+    {
+      "step": 3,
+      "channel": "email",
+      "subject": "Exploring Innovations in MarTech",
+      "body": "Dear Ms. Anderson,\n\nI wanted to follow up on our conversation about technology integration at PipelineIO. As a company that helps SaaS firms automate their sales processes, we have seen significant success in enhancing customer engagement and driving measurable ROI.\n\nWould you be open to a brief call next week?\n\nBest regards",
+      "signals_used": ["interest in technology integration", "focus on customer engagement"],
+      "personalization_rationale": "Introduces our solutions while offering to discuss strategies that may benefit PipelineIO.",
+      "assumptions": ["Sarah is open to exploring partnerships"],
+      "risk_checks": ["No sensitive inference", "No unverifiable claims"],
+      "confidence_score": 0.9
+    }
+  ],
+  "overall_confidence": 0.88,
+  "generation_metadata": null
+}
+```
+
+</details>
+
+> **Note**: The app uses a mock LinkedIn provider. Different URL slugs (e.g. `/in/jane-doe`, `/in/alex-smith`) produce different mock profiles. The `LinkedInProvider` interface is ready for a real provider swap.
+
 ## Setup
 
 ### Prerequisites
@@ -60,22 +157,7 @@ The API is available at `http://localhost:3000/api` and Swagger docs at `http://
 
 ### Example: Generate a Sequence
 
-```bash
-curl -X POST http://localhost:3000/api/generate-sequence \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "prospect_url": "https://linkedin.com/in/john-doe",
-    "tov_config": {
-      "formality": 0.8,
-      "warmth": 0.6,
-      "directness": 0.7
-    },
-    "company_context": "We help SaaS companies automate sales",
-    "sequence_length": 3
-  }'
-```
-
-Response includes the generated messages, prospect analysis, structured rationale for each message, confidence scores, and AI generation metadata (tokens, cost, latency).
+See the [Live Demo](#live-demo) section above for a working curl command and example response.
 
 **Why do I always get the same prospect name (e.g. Sarah Anderson)?**  
 The app uses a **mock LinkedIn provider** that does not call real LinkedIn. It builds a fake profile from the URL slug (e.g. `john-doe`) using a deterministic hash, so the same URL always yields the same mock profile. Different slugs (e.g. `jane-doe`, `alex-smith`) produce different mock names and titles. To use real LinkedIn data you would need to plug in a real provider (e.g. LinkedIn API or scraping) and register it in `LinkedInModule` instead of `MockLinkedInService`.
