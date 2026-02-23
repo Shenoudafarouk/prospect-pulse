@@ -40,10 +40,15 @@ export class AiService {
 
   async analyzeProspect(
     profile: LinkedInProfile,
+    prospectUrl: string,
     sequenceId: string | null,
   ): Promise<ProspectAnalysisResult> {
     const { system, user } = this.promptBuilder.buildAnalysisPrompt(profile);
-    const requestHash = this.computeHash({ phase: 'analysis', profile });
+    const hashInput = this.promptBuilder.buildAnalysisHashInput(
+      prospectUrl,
+      profile,
+    );
+    const requestHash = this.computeHash(hashInput);
 
     const result = await this.callOpenAI<ProspectAnalysisResult>(
       system,
@@ -58,6 +63,7 @@ export class AiService {
 
   async generateMessages(
     profile: LinkedInProfile,
+    prospectUrl: string,
     analysis: ProspectAnalysisResult,
     tov: TovTranslation,
     companyContext: string,
@@ -71,14 +77,14 @@ export class AiService {
       companyContext,
       sequenceLength,
     );
-    const requestHash = this.computeHash({
-      phase: 'generation',
+    const hashInput = this.promptBuilder.buildGenerationHashInput(
+      prospectUrl,
       profile,
-      analysis,
       tov,
       companyContext,
       sequenceLength,
-    });
+    );
+    const requestHash = this.computeHash(hashInput);
 
     const result = await this.callOpenAI<MessageGenerationResult>(
       system,

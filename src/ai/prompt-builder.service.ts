@@ -4,6 +4,16 @@ import { TovTranslation } from '../tov/tov-translator.service.js';
 
 export const PROMPT_VERSION = 'v1';
 
+export interface HashInput {
+  promptVersion: string;
+  phase: string;
+  prospectUrl: string;
+  profileFullName: string;
+  companyContext?: string;
+  sequenceLength?: number;
+  tovSummary?: string;
+}
+
 @Injectable()
 export class PromptBuilderService {
   buildAnalysisPrompt(profile: LinkedInProfile): {
@@ -131,5 +141,35 @@ Generate a ${sequenceLength}-message outreach sequence.`;
     }
 
     return parts.join('\n');
+  }
+
+  buildAnalysisHashInput(
+    prospectUrl: string,
+    profile: LinkedInProfile,
+  ): HashInput {
+    return {
+      promptVersion: PROMPT_VERSION,
+      phase: 'analysis',
+      prospectUrl,
+      profileFullName: profile.fullName,
+    };
+  }
+
+  buildGenerationHashInput(
+    prospectUrl: string,
+    profile: LinkedInProfile,
+    tov: TovTranslation,
+    companyContext: string,
+    sequenceLength: number,
+  ): HashInput {
+    return {
+      promptVersion: PROMPT_VERSION,
+      phase: 'generation',
+      prospectUrl,
+      profileFullName: profile.fullName,
+      companyContext,
+      sequenceLength,
+      tovSummary: tov.tovSummary,
+    };
   }
 }

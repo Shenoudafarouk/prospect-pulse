@@ -1,18 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call -- class-validator decorators have unresolved types in this env */
+import { Type } from 'class-transformer';
 import {
+  IsInt,
   IsNumber,
   IsOptional,
   IsString,
+  IsUrl,
   Max,
   Min,
-  IsObject,
+  ValidateNested,
 } from 'class-validator';
 
-export class CreateTovConfigDto {
-  @IsOptional()
-  @IsString()
-  name?: string;
-
+export class TovConfigInput {
   @IsNumber()
   @Min(0)
   @Max(1)
@@ -39,8 +38,21 @@ export class CreateTovConfigDto {
   @Min(0)
   @Max(1)
   technicality?: number;
+}
 
-  @IsOptional()
-  @IsObject()
-  extraParams?: Record<string, unknown>;
+export class GenerateSequenceDto {
+  @IsUrl({}, { message: 'prospect_url must be a valid URL' })
+  prospect_url!: string;
+
+  @ValidateNested()
+  @Type(() => TovConfigInput)
+  tov_config!: TovConfigInput;
+
+  @IsString()
+  company_context!: string;
+
+  @IsInt()
+  @Min(1)
+  @Max(10)
+  sequence_length!: number;
 }
